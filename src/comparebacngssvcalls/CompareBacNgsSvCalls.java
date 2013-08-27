@@ -27,18 +27,20 @@ public class CompareBacNgsSvCalls {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
 
-        File PiclFilteredOutput = new File("/home/wim/Analysis/ratfounder/NGS/Picl_SV_calls/LE/LE_c4_deletion.csv");
+        //File PiclFilteredOutput = new File("/home/sge_share_fedor13/wim/ratClusterWorkSpace/LE/LE_c4_deletion.csv");
+        File PiclFilteredOutput = new File("/home/sge_share_fedor13/wim/ratClusterWorkSpace/LE_ILLUMINA/LE_Illumina_c4.csv");
+        
 
-        File inBacSVCallsFile = new File("/home/wim/Analysis/ratfounder/bac/rnor5/inBacCalls/inBacCalls_mergedDeletion.bed");
+        File inBacSVCallsFile = new File("/home/sge_share_fedor12/wim/Analysis/ratfounders/13BACs_vs_10SolidRatNGS_GenotypeConcordance/13BACS_k400_w5000/13BACS_OnlyHighQualSorted_deletionsMergedWindow1000.bed");
 
-        File betweenBacSVCallsFile = new File("/home/wim/Analysis/ratfounder/bac/rnor5/betweenBacCalls/betweenBacCalls.txt");
+       // File betweenBacSVCallsFile = new File("/home/wim/Analysis/ratfounder/bac/rnor5/betweenBacCalls/betweenBacCalls.txt");
 
-        File bacRegionsFile = new File("/home/wim/Analysis/ratfounder/bac/rnor5/13BACS_OnlyHighQualSorted_bamToBedMerged.bed");
+        File bacRegionsFile = new File("/home/sge_share_fedor12/wim/Analysis/ratfounders/13BACs_vs_10SolidRatNGS_GenotypeConcordance/13BACS_k400_w5000/bed/13BACS_OnlyHighQualSorted_bamToBedMerged.bed");
 
 
         BufferedReader piclBR = new BufferedReader(new FileReader(PiclFilteredOutput));
         BufferedReader inBacBR = new BufferedReader(new FileReader(inBacSVCallsFile));
-        BufferedReader betweenBacBR = new BufferedReader(new FileReader(betweenBacSVCallsFile));
+    //    BufferedReader betweenBacBR = new BufferedReader(new FileReader(betweenBacSVCallsFile));
         BufferedReader bacRegionsBR = new BufferedReader(new FileReader(bacRegionsFile));
 
         
@@ -237,7 +239,9 @@ public class CompareBacNgsSvCalls {
                         ArrayList<Range<Integer>> chromPiclConcordantList = new ArrayList<Range<Integer>>();
                         piclCallsConcordantWithBacCalls.put(chrom, chromPiclConcordantList);
                     }
-                    piclCallsConcordantWithBacCalls.get(chrom).add(piclCall);       
+                    piclCallsConcordantWithBacCalls.get(chrom).add(piclCall);   
+                    
+                    System.out.println(chrom+"\t"+piclCall.getMinimum()+"\t"+piclCall.getMaximum()+"\t"+"piclCall and bacBacCall !");
                     
                     String blaat = "blaat";
                 }
@@ -251,6 +255,7 @@ public class CompareBacNgsSvCalls {
                     }
                     piclCallsDisConcordantWithBacCalls.get(chrom).add(piclCall);       
                     
+                    System.out.println(chrom+"\t"+piclCall.getMinimum()+"\t"+piclCall.getMaximum()+"\t"+"piclCall_noBacCall");
                     String blaat = "blaat";
                 
                 }
