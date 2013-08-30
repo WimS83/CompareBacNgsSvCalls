@@ -42,6 +42,11 @@ public class Deletion {
         this.chromosome = chromosome;
     }
     
+    public Integer getSize()
+    {
+        return location.getMaximum() - location.getMinimum();
+    }
+    
     
     
     

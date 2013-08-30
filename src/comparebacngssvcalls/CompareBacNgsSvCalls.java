@@ -37,6 +37,11 @@ public class CompareBacNgsSvCalls {
 
         File bacRegionsFile = new File("/home/sge_share_fedor12/wim/Analysis/ratfounders/13BACs_vs_10SolidRatNGS_GenotypeConcordance/13BACS_k400_w5000/bed/13BACS_OnlyHighQualSorted_bamToBedMerged.bed");
 
+        File BacContigsBamFile = new File("/home/sge_share_fedor12/wim/Analysis/ratfounders/13BACs_vs_10SolidRatNGS_GenotypeConcordance/13BACS_k400_w5000/13BACS_OnlyHighQualSorted.bam"); 
+        BamIndelParser bamIndelParser = new BamIndelParser(BacContigsBamFile);
+        
+        bamIndelParser.parseIndelInAlignments();
+        
 
         BufferedReader piclBR = new BufferedReader(new FileReader(PiclFilteredOutput));
         BufferedReader inBacBR = new BufferedReader(new FileReader(inBacSVCallsFile));

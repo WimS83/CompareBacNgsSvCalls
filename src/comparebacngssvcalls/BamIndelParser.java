@@ -24,14 +24,30 @@ public class BamIndelParser {
     
     
     File bamFile;
+    TreeMap<Integer,Integer> deletionsSizesCountMap;
+    
 
     public BamIndelParser(File bamFile) {
         this.bamFile = bamFile;
+        
+        deletionsSizesCountMap = new TreeMap<Integer,Integer>();
+        
+        Integer i = 0;        
+        while(i < 6000)
+        {
+            deletionsSizesCountMap.put(i, 0);
+            i = i +100;
+        }
+        
+        String blaat = "";
+        
+        
+        
     }       
      
     
-    public void parseIndelInAlignments(File inputBam) {
-        SAMFileReader bamreader = new SAMFileReader(inputBam);
+    public void parseIndelInAlignments() {
+        SAMFileReader bamreader = new SAMFileReader(bamFile);
         
         List<Deletion> deletionList = new ArrayList<Deletion>();
         
@@ -81,11 +97,7 @@ public class BamIndelParser {
                         {
                              Deletion deletion = new Deletion(Range.between(cigarElementStart, cigarElementEnd), currentChrom);
                              deletionList.add(deletion);
-                        }
-                        
-                        
-                       
-                        
+                        }                        
                         
                     }  
                 }
@@ -113,8 +125,22 @@ public class BamIndelParser {
         
         for(Deletion deletion : deletionList)
         {
-            System.out.println(deletion.getChromosome()+ "\t"+deletion.getLocation().getMinimum()+"\t"+deletion.getLocation().getMaximum()+"\t"+"deletion");
+            System.out.println(deletion.getChromosome()+ "\t"+deletion.getLocation().getMinimum()+"\t"+deletion.getLocation().getMaximum()+"\t"+"deletion"+"\t"+deletion.getSize());
+            Integer modulus = deletion.getSize() % 100;
+            Integer oldCount = deletionsSizesCountMap.get(deletion.getSize()-modulus);
+            deletionsSizesCountMap.put(deletion.getSize()-modulus, oldCount+1);
+            
+            String blaat = "";
         }
+        
+        for(Integer deletionSize : deletionsSizesCountMap.keySet())
+        {
+            Integer count = deletionsSizesCountMap.get(deletionSize);
+            System.out.println(deletionSize+"\t"+count);
+        
+        }
+        
+        String blaat = "";
         
         
     }
