@@ -38,7 +38,7 @@ public class BamIndelParser {
     }       
      
     
-    public EnumMap<RatChromosomes, ArrayList<Deletion>> parseIndelInAlignments() {
+    public EnumMap<RatChromosomes, ArrayList<Deletion>> parseIndelInAlignments(Integer minimumIndelSize) {
         SAMFileReader bamreader = new SAMFileReader(bamFile);
         
         //initialize map to store list of deletions per ratchromosome
@@ -80,7 +80,7 @@ public class BamIndelParser {
                     Integer cigarElementLenght = cigarElement.getLength();
                     Integer cigarElementEnd = currentReferencePos+cigarElementLenght;
                     
-                    if(cigarElementLenght > 100 )
+                    if(cigarElementLenght > minimumIndelSize )
                     {
                         //System.out.println("deletion found from " + currentChrom +":"  + cigarElementStart + "-" + cigarElementEnd );
                         //System.out.println(currentChrom+ "\t"+cigarElementStart+"\t"+cigarElementEnd+"\t"+"deletion");
@@ -117,7 +117,7 @@ public class BamIndelParser {
                     Integer cigarElementLenght = cigarElement.getLength();
                    
                     
-                    if(cigarElementLenght > 100 )
+                    if(cigarElementLenght > minimumIndelSize )
                     {
                         //System.out.println("insertion found at " + currentChrom +":"  + cigarElementStart );
                         //System.out.println(currentChrom+ "\t"+(cigarElementStart-1)+"\t"+cigarElementStart+"\t"+"insertion");
@@ -134,64 +134,16 @@ public class BamIndelParser {
         }   
         
         
-        printDeletions(deletionListPerChromosome);
-        TreeMap<Integer, Integer> deletionCount100bpWindows = storeDeletionsSizes(deletionListPerChromosome, 100, 6000);        
-        printDeletionCount(deletionCount100bpWindows);       
+      
+     
        
         return deletionListPerChromosome;       
         
-    }
+    }    
     
-    
-       private void printDeletions(EnumMap<RatChromosomes, ArrayList<Deletion>> deletionListPerChromosome) {
-        
-        for(RatChromosomes ratChromosomes : deletionListPerChromosome.keySet())
-        {
-            for(Deletion deletion : deletionListPerChromosome.get(ratChromosomes))
-            {
-                System.out.println(deletion.getChromosome()+ "\t"+deletion.getLocation().getMinimum()+"\t"+deletion.getLocation().getMaximum()+"\t"+"deletion"+"\t"+deletion.getSize());         
-            }        
-        }
-        
-    }
+      
      
-    private TreeMap<Integer, Integer> storeDeletionsSizes( EnumMap<RatChromosomes, ArrayList<Deletion>> deletionListPerChromosome, int binSize, int max) {
-        
-        TreeMap<Integer, Integer> deletionsSizesCountMap = new TreeMap<Integer,Integer>();
-        
-        //initialize the countMap with zero for each bin up to the max
-        Integer i = 0;        
-        while(i < max)
-        {
-            deletionsSizesCountMap.put(i, 0);
-            i = i +binSize;
-        }
-        
-        //loop over the deletions and increase the counters for the bin in which the deletions size falls for every deletion
-        for(RatChromosomes ratChromosome : deletionListPerChromosome.keySet())
-        {
-            for(Deletion deletion : deletionListPerChromosome.get(ratChromosome))
-            {
-                if(deletion.getSize() > max) {continue;}
-
-                Integer modulus = deletion.getSize() % binSize;
-                Integer oldCount = deletionsSizesCountMap.get(deletion.getSize()-modulus);
-                deletionsSizesCountMap.put(deletion.getSize()-modulus, oldCount+1);   
-            }       
-        }
-        
-        return deletionsSizesCountMap;       
-    }
-    
-     private void printDeletionCount(TreeMap<Integer, Integer> deletionsSizesCountMap) {
-        
-        for(Integer deletionSize : deletionsSizesCountMap.keySet())
-        {
-            Integer count = deletionsSizesCountMap.get(deletionSize);
-            System.out.println(deletionSize+"\t"+count);
-        
-        }
-    }
+   
      
      
      

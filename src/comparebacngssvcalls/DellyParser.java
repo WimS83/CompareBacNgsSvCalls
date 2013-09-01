@@ -11,30 +11,23 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import org.apache.commons.lang3.Range;
 
 /**
  *
  * @author wim
  */
-public class PiclParser {
+public class DellyParser {
+    
+    File dellyFile;
+    BufferedReader dellyBR;
 
-    File piclFile;
-    BufferedReader piclBR;
-    
-    
-    
-    public PiclParser(File piclFile) throws FileNotFoundException {
-        this.piclFile = piclFile;
-        
-        piclBR = new BufferedReader(new FileReader(piclFile));    
-        
+    public DellyParser(File dellyFile) throws FileNotFoundException {
+        this.dellyFile = dellyFile;
+         dellyBR = new BufferedReader(new FileReader(dellyFile));    
     }
     
-    public  EnumMap<RatChromosomes, ArrayList<Deletion>> readPiclSVCalls() throws IOException {
+      public  EnumMap<RatChromosomes, ArrayList<Deletion>> readDellySVCalls() throws IOException {
        
        // Map<String, ArrayList<Deletion>> chromPiclSVCallsMap = new HashMap<String, ArrayList<Deletion>>();
         
@@ -48,14 +41,21 @@ public class PiclParser {
         
         
 
-        String line = piclBR.readLine();
+        String line = dellyBR.readLine();
 
         while (line != null) {
             String[] splitLine = line.split("\t");
             Integer begin = new Integer(splitLine[1]);
-            Integer end = new Integer(splitLine[5]);
-            String type = splitLine[9];            
-            if(!type.equalsIgnoreCase("deletion")){continue;}               
+            Integer end = new Integer(splitLine[2]);
+//            String type = splitLine[9];            
+//            if(!type.equalsIgnoreCase("deletion")){continue;}       
+            
+            Integer supportingPairs = new Integer(splitLine[4]);
+            if(supportingPairs < 4 ){
+                line = dellyBR.readLine();
+                continue;
+            }
+            
             
             String chrom = splitLine[0];
             
@@ -68,13 +68,14 @@ public class PiclParser {
             //continue to next line if unknown chromosome
             catch(IllegalArgumentException  ex)
             {
+                line = dellyBR.readLine();
                 continue;
             }                       
             
             Deletion deletion = new Deletion(Range.between(begin, end), chrom);            
             deletionListPerChromosome.get(ratChromosome).add(deletion);      
 
-            line = piclBR.readLine();
+            line = dellyBR.readLine();
             String blaat = "blaat";
         }
         
@@ -85,10 +86,6 @@ public class PiclParser {
         return deletionListPerChromosome;
         
     }
-    
-   
-    
-    
     
     
     
