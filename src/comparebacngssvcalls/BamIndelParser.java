@@ -6,6 +6,7 @@ package comparebacngssvcalls;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,21 +24,12 @@ import org.apache.commons.lang3.Range;
 public class BamIndelParser {
     
     
-    File bamFile;
-    TreeMap<Integer,Integer> deletionsSizesCountMap;
-    
+    File bamFile;   
 
     public BamIndelParser(File bamFile) {
         this.bamFile = bamFile;
         
-        deletionsSizesCountMap = new TreeMap<Integer,Integer>();
         
-        Integer i = 0;        
-        while(i < 6000)
-        {
-            deletionsSizesCountMap.put(i, 0);
-            i = i +100;
-        }
         
         String blaat = "";
         
@@ -46,13 +38,16 @@ public class BamIndelParser {
     }       
      
     
-    public void parseIndelInAlignments() {
+    public EnumMap<RatChromosomes, ArrayList<Deletion>> parseIndelInAlignments() {
         SAMFileReader bamreader = new SAMFileReader(bamFile);
         
-        List<Deletion> deletionList = new ArrayList<Deletion>();
-        
-        
-        
+        //initialize map to store list of deletions per ratchromosome
+        EnumMap<RatChromosomes, ArrayList<Deletion>> deletionListPerChromosome = new EnumMap<RatChromosomes, ArrayList<Deletion>>(RatChromosomes.class);
+        for(RatChromosomes ratChromosomes: RatChromosomes.values())
+        {
+            ArrayList deletions = new ArrayList<Deletion>();
+            deletionListPerChromosome.put(ratChromosomes, deletions);
+        }
         
         
         for(SAMRecord samRecord : bamreader)
@@ -62,6 +57,19 @@ public class BamIndelParser {
             
             //get the start of the alignment
             String currentChrom = samRecord.getReferenceName();
+            if(!currentChrom.contains("chr")){currentChrom = "chr"+currentChrom;}
+            
+            RatChromosomes ratChromosome;
+            try{                
+                ratChromosome = RatChromosomes.valueOf(currentChrom);
+            }
+            //continue to next line if unknown chromosome
+            catch(IllegalArgumentException  ex)
+            {
+                continue;
+            }                       
+            
+            
             Integer currentReferencePos = samRecord.getAlignmentStart();
             
             for (CigarElement cigarElement :samRecord.getCigar().getCigarElements())
@@ -77,6 +85,8 @@ public class BamIndelParser {
                         //System.out.println("deletion found from " + currentChrom +":"  + cigarElementStart + "-" + cigarElementEnd );
                         //System.out.println(currentChrom+ "\t"+cigarElementStart+"\t"+cigarElementEnd+"\t"+"deletion");
                         //if there are previous deletions check is this one falls within 100 bp of the previous one. If so update the of the last one to be the end of this one 
+                        ArrayList<Deletion> deletionList = deletionListPerChromosome.get(ratChromosome);
+                        
                         if(deletionList.size() > 0)
                         {
                             Deletion previousDeletion = deletionList.get(deletionList.size()-1 );
@@ -101,7 +111,7 @@ public class BamIndelParser {
                         
                     }  
                 }
-                 if(cigarElement.getOperator() == CigarOperator.I)
+                if(cigarElement.getOperator() == CigarOperator.I)
                 {
                     Integer cigarElementStart = currentReferencePos;
                     Integer cigarElementLenght = cigarElement.getLength();
@@ -121,17 +131,59 @@ public class BamIndelParser {
                      currentReferencePos = currentReferencePos + cigarElement.getLength();
                 } 
             }            
+        }   
+        
+        
+        printDeletions(deletionListPerChromosome);
+        TreeMap<Integer, Integer> deletionCount100bpWindows = storeDeletionsSizes(deletionListPerChromosome, 100, 6000);        
+        printDeletionCount(deletionCount100bpWindows);       
+       
+        return deletionListPerChromosome;       
+        
+    }
+    
+    
+       private void printDeletions(EnumMap<RatChromosomes, ArrayList<Deletion>> deletionListPerChromosome) {
+        
+        for(RatChromosomes ratChromosomes : deletionListPerChromosome.keySet())
+        {
+            for(Deletion deletion : deletionListPerChromosome.get(ratChromosomes))
+            {
+                System.out.println(deletion.getChromosome()+ "\t"+deletion.getLocation().getMinimum()+"\t"+deletion.getLocation().getMaximum()+"\t"+"deletion"+"\t"+deletion.getSize());         
+            }        
         }
         
-        for(Deletion deletion : deletionList)
+    }
+     
+    private TreeMap<Integer, Integer> storeDeletionsSizes( EnumMap<RatChromosomes, ArrayList<Deletion>> deletionListPerChromosome, int binSize, int max) {
+        
+        TreeMap<Integer, Integer> deletionsSizesCountMap = new TreeMap<Integer,Integer>();
+        
+        //initialize the countMap with zero for each bin up to the max
+        Integer i = 0;        
+        while(i < max)
         {
-            System.out.println(deletion.getChromosome()+ "\t"+deletion.getLocation().getMinimum()+"\t"+deletion.getLocation().getMaximum()+"\t"+"deletion"+"\t"+deletion.getSize());
-            Integer modulus = deletion.getSize() % 100;
-            Integer oldCount = deletionsSizesCountMap.get(deletion.getSize()-modulus);
-            deletionsSizesCountMap.put(deletion.getSize()-modulus, oldCount+1);
-            
-            String blaat = "";
+            deletionsSizesCountMap.put(i, 0);
+            i = i +binSize;
         }
+        
+        //loop over the deletions and increase the counters for the bin in which the deletions size falls for every deletion
+        for(RatChromosomes ratChromosome : deletionListPerChromosome.keySet())
+        {
+            for(Deletion deletion : deletionListPerChromosome.get(ratChromosome))
+            {
+                if(deletion.getSize() > max) {continue;}
+
+                Integer modulus = deletion.getSize() % binSize;
+                Integer oldCount = deletionsSizesCountMap.get(deletion.getSize()-modulus);
+                deletionsSizesCountMap.put(deletion.getSize()-modulus, oldCount+1);   
+            }       
+        }
+        
+        return deletionsSizesCountMap;       
+    }
+    
+     private void printDeletionCount(TreeMap<Integer, Integer> deletionsSizesCountMap) {
         
         for(Integer deletionSize : deletionsSizesCountMap.keySet())
         {
@@ -139,11 +191,12 @@ public class BamIndelParser {
             System.out.println(deletionSize+"\t"+count);
         
         }
-        
-        String blaat = "";
-        
-        
     }
+     
+     
+     
+     
+    
 
     private static void parseIndelsBetweenAlignments(File inputBam) {
         
@@ -226,6 +279,12 @@ public class BamIndelParser {
         
         String blaat = "blaat";
     }
+
+   
+
+    
+
+   
     
     
 }
