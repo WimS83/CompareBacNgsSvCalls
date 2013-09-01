@@ -55,7 +55,19 @@ public class PiclParser {
             Integer begin = new Integer(splitLine[1]);
             Integer end = new Integer(splitLine[5]);
             String type = splitLine[9];            
-            if(!type.equalsIgnoreCase("deletion")){continue;}               
+            if(!type.equalsIgnoreCase("deletion")){
+                line = piclBR.readLine();
+                continue;
+            }               
+            
+            Integer readPairSupport = new Integer(splitLine[7]);
+            if(readPairSupport < 4 )
+            {
+                 line = piclBR.readLine();
+                continue;
+                
+            }
+            
             
             String chrom = splitLine[0];
             
@@ -68,6 +80,7 @@ public class PiclParser {
             //continue to next line if unknown chromosome
             catch(IllegalArgumentException  ex)
             {
+                line = piclBR.readLine();
                 continue;
             }                       
             

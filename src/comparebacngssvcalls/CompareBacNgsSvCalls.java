@@ -26,7 +26,7 @@ public class CompareBacNgsSvCalls {
         // TODO code application logic here
 
         //File PiclFilteredOutput = new File("/home/sge_share_fedor13/wim/ratClusterWorkSpace/LE/LE_c4_deletion.csv");
-        File PiclFilteredOutput = new File("/home/wim/Analysis/ratfounder/NGS/Picl_SV_calls/LE/LE_c4_deletion.csv");
+        File PiclFilteredOutput = new File("/home/wim/Analysis/ratfounder/NGS/Picl_SV_calls/LE/LE_deletion.csv");
         
         //File PiclFilteredOutput = new File("/home/wim/Analysis/ratfounder/NGS/Picl_SV_calls/LE/Illumina/LE_ILLUMINA/LE_Illumina_c4.csv");   
         
@@ -71,23 +71,23 @@ public class CompareBacNgsSvCalls {
         
         
         
-//        calculateOverlap("PiclCalls", piclBasedDeletionsCallsInBacRegions,"bacCalls", bacBasedDeletionCalls);
+        calculateOverlap("PiclCalls", piclBasedDeletionsCallsInBacRegions,"bacCalls", bacBasedDeletionCalls);
+        
+        calculateOverlap("bacCalls", bacBasedDeletionCalls, "PiclCalls", piclBasedDeletionsCallsInBacRegions);
+        
+        
+//        calculateOverlap("DellyCalls", dellyBasedDeletionsCallsInBacRegions,"bacCalls", bacBasedDeletionCalls);
 //        
-//        calculateOverlap("bacCalls", bacBasedDeletionCalls, "PiclCalls", piclBasedDeletionsCallsInBacRegions);
+//        calculateOverlap("bacCalls", bacBasedDeletionCalls, "DellyCalls", dellyBasedDeletionsCallsInBacRegions);
         
         
-        calculateOverlap("DellyCalls", dellyBasedDeletionsCallsInBacRegions,"bacCalls", bacBasedDeletionCalls);
-        
-        calculateOverlap("bacCalls", bacBasedDeletionCalls, "DellyCalls", dellyBasedDeletionsCallsInBacRegions);
-        
-        
-        //print the bacBased deletionCount in 100bp windows
-        TreeMap<Integer, Integer> bacDeletionCount100bpWindows = storeDeletionsSizes(bacBasedDeletionCalls, 100, 6000);        
-        printDeletionCount(bacDeletionCount100bpWindows);       
-        
-        //print the picl based deletionCount in 100bp windows 
-        TreeMap<Integer, Integer> piclDeletionsCountPer100bpWindow=  storeDeletionsSizes(piclBasedDeletionsCalls, 100, 1000000);
-        printDeletionCount(piclDeletionsCountPer100bpWindow);
+//        //print the bacBased deletionCount in 100bp windows
+//        TreeMap<Integer, Integer> bacDeletionCount100bpWindows = storeDeletionsSizes(bacBasedDeletionCalls, 100, 6000);        
+//        printDeletionCount(bacDeletionCount100bpWindows);       
+//        
+//        //print the picl based deletionCount in 100bp windows 
+//        TreeMap<Integer, Integer> piclDeletionsCountPer100bpWindow=  storeDeletionsSizes(piclBasedDeletionsCalls, 100, 1000000);
+//        printDeletionCount(piclDeletionsCountPer100bpWindow);
         
         
         
