@@ -11,30 +11,23 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import org.apache.commons.lang3.Range;
 
 /**
  *
  * @author wim
  */
-public class PiclParser {
+public class BreakdancerParser {
+    
+    File breakdancerFile;
+    BufferedReader breakdancerBR;
 
-    File piclFile;
-    BufferedReader piclBR;
-    
-    
-    
-    public PiclParser(File piclFile) throws FileNotFoundException {
-        this.piclFile = piclFile;
-        
-        piclBR = new BufferedReader(new FileReader(piclFile));    
-        
+    public BreakdancerParser(File breakdancerFile) throws FileNotFoundException {
+        this.breakdancerFile = breakdancerFile;
+         breakdancerBR = new BufferedReader(new FileReader(breakdancerFile));    
     }
     
-    public  EnumMap<RatChromosomes, ArrayList<Deletion>> readPiclSVCalls() throws IOException {
+      public  EnumMap<RatChromosomes, ArrayList<Deletion>> readBreakdancerSVCalls() throws IOException {
        
        // Map<String, ArrayList<Deletion>> chromPiclSVCallsMap = new HashMap<String, ArrayList<Deletion>>();
         
@@ -48,31 +41,31 @@ public class PiclParser {
         
         
 
-        String line = piclBR.readLine();
+        String line = breakdancerBR.readLine();
 
         while (line != null) {
-            String[] splitLine = line.split("\t");
-            Integer begin = new Integer(splitLine[1]);
-            Integer end = new Integer(splitLine[5]);
-            String type = splitLine[9];            
-            if(!type.equalsIgnoreCase("deletion")){
-                line = piclBR.readLine();
-                continue;
-            }               
             
-            Integer readPairSupport = new Integer(splitLine[7]);
-            if(readPairSupport < 4 )
+            if(line.charAt(0) == '#')
             {
-                 line = piclBR.readLine();
+                line = breakdancerBR.readLine();
                 continue;
-                
             }
             
-            if(end - begin > 1000000000)
-            {
-                  line = piclBR.readLine();
-                continue;
             
+            String[] splitLine = line.split("\t");
+            Integer begin = new Integer(splitLine[1]);
+            Integer end = new Integer(splitLine[4]);
+            String type = splitLine[6];            
+            if(!type.equalsIgnoreCase("DEL"))
+            {
+                line = breakdancerBR.readLine();
+                continue;
+            }       
+            
+            Integer supportingPairs = new Integer(splitLine[9]);
+            if(supportingPairs < 4 ){
+                line = breakdancerBR.readLine();
+                continue;
             }
             
             
@@ -87,14 +80,14 @@ public class PiclParser {
             //continue to next line if unknown chromosome
             catch(IllegalArgumentException  ex)
             {
-                line = piclBR.readLine();
+                line = breakdancerBR.readLine();
                 continue;
             }                       
             
             Deletion deletion = new Deletion(Range.between(begin, end), chrom);            
             deletionListPerChromosome.get(ratChromosome).add(deletion);      
 
-            line = piclBR.readLine();
+            line = breakdancerBR.readLine();
             String blaat = "blaat";
         }
         
@@ -105,9 +98,6 @@ public class PiclParser {
         return deletionListPerChromosome;
         
     }
-    
-   
-    
     
     
     

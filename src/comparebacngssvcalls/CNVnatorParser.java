@@ -11,30 +11,25 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import org.apache.commons.lang3.Range;
 
 /**
  *
  * @author wim
  */
-public class PiclParser {
-
-    File piclFile;
-    BufferedReader piclBR;
+public class CNVnatorParser {
     
-    
-    
-    public PiclParser(File piclFile) throws FileNotFoundException {
-        this.piclFile = piclFile;
+    File cnvNatorFile;
+    BufferedReader cnvBR;
         
-        piclBR = new BufferedReader(new FileReader(piclFile));    
+    public CNVnatorParser(File cnvNatorFile) throws FileNotFoundException {
+        this.cnvNatorFile = cnvNatorFile;
+        
+        cnvBR = new BufferedReader(new FileReader(cnvNatorFile));    
         
     }
     
-    public  EnumMap<RatChromosomes, ArrayList<Deletion>> readPiclSVCalls() throws IOException {
+    public  EnumMap<RatChromosomes, ArrayList<Deletion>> readCNVSVCalls() throws IOException {
        
        // Map<String, ArrayList<Deletion>> chromPiclSVCallsMap = new HashMap<String, ArrayList<Deletion>>();
         
@@ -48,35 +43,42 @@ public class PiclParser {
         
         
 
-        String line = piclBR.readLine();
+        String line = cnvBR.readLine();
 
         while (line != null) {
             String[] splitLine = line.split("\t");
-            Integer begin = new Integer(splitLine[1]);
-            Integer end = new Integer(splitLine[5]);
-            String type = splitLine[9];            
+            String location = splitLine[1];
+            String[] locationSplit = location.split(":");
+            String locationBeginEnd = locationSplit[1];
+            String[] locationBeginEndSplit = locationBeginEnd.split("-");
+            
+            Integer begin = new Integer(locationBeginEndSplit[0]);
+            Integer end = new Integer(locationBeginEndSplit[1]);
+            String type = splitLine[0];            
             if(!type.equalsIgnoreCase("deletion")){
-                line = piclBR.readLine();
+                line = cnvBR.readLine();
                 continue;
-            }               
+            }   
             
-            Integer readPairSupport = new Integer(splitLine[7]);
-            if(readPairSupport < 4 )
-            {
-                 line = piclBR.readLine();
-                continue;
-                
-            }
-            
-            if(end - begin > 1000000000)
-            {
-                  line = piclBR.readLine();
-                continue;
-            
-            }
+//            Double mapq0Fraction  = new Double(splitLine[8]);
+//            if(mapq0Fraction.compareTo(new Double(1)) ==0  )
+//            {
+//                line = cnvBR.readLine();
+//                continue;
+//            }
             
             
-            String chrom = splitLine[0];
+            
+//            Integer readPairSupport = new Integer(splitLine[7]);
+//            if(readPairSupport < 4 )
+//            {
+//                 line = cnvBR.readLine();
+//                continue;
+//                
+//            }
+            
+            
+            String chrom = locationSplit[0];
             
             if(!chrom.contains("chr")){chrom = "chr"+chrom;}
             
@@ -87,14 +89,14 @@ public class PiclParser {
             //continue to next line if unknown chromosome
             catch(IllegalArgumentException  ex)
             {
-                line = piclBR.readLine();
+                line = cnvBR.readLine();
                 continue;
             }                       
             
             Deletion deletion = new Deletion(Range.between(begin, end), chrom);            
             deletionListPerChromosome.get(ratChromosome).add(deletion);      
 
-            line = piclBR.readLine();
+            line = cnvBR.readLine();
             String blaat = "blaat";
         }
         
@@ -105,9 +107,6 @@ public class PiclParser {
         return deletionListPerChromosome;
         
     }
-    
-   
-    
     
     
     
